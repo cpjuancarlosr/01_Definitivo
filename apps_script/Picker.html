@@ -3,7 +3,7 @@
   <head>
     <base target="_top" />
     <meta charset="utf-8" />
-    <script src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/styles.css">
     <style>
       body {
         font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -24,12 +24,12 @@
         padding: 10px 18px;
         border-radius: 6px;
         border: none;
-        background: #0b8457;
+        background: #00A878;
         color: #fff;
         font-size: 14px;
         cursor: pointer;
       }
-      button[disabled] {
+      button:disabled {
         background: #cbd5e0;
         cursor: not-allowed;
       }
@@ -52,7 +52,7 @@
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        border: 3px solid #0b8457;
+        border: 3px solid #00A878;
         border-top-color: transparent;
         animation: spin 0.8s linear infinite;
       }
@@ -65,109 +65,102 @@
         display: none;
       }
     </style>
+    <script type="text/javascript" src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
   </head>
   <body>
     <h1>Subir CFDI (XML) desde tu equipo</h1>
     <p>
-      Selecciona los archivos XML del periodo. Se subirán automáticamente a la carpeta
-      configurada en <strong>Setup</strong> y quedarán listos para su procesamiento.
+      Selecciona los archivos XML del periodo. Se subirán a Google Drive y quedarán listos para su procesamiento en la hoja de cálculo.
     </p>
-    <button id="picker" disabled>Abrir selector</button>
+    <button id="pickerButton" disabled>Cargando...</button>
     <div class="status">
       <div class="spinner hidden" id="spinner"></div>
-      <span id="status">Cargando librerías de Google Picker…</span>
+      <span id="status">Iniciando...</span>
     </div>
 
-    <script>
-      const developerKey = '';
-      const pickerAppId = google.script.host.editor ? google.script.host.editor.projectId : '';
-      let oauthToken = '';
+    <script type="text/javascript">
+      let oauthToken = null;
       let pickerApiLoaded = false;
 
       function onApiLoad() {
-        gapi.load('auth', { callback: onAuthApiLoad });
-        gapi.load('picker', { callback: onPickerApiLoad });
-      }
-
-      function onAuthApiLoad() {
-        gapi.auth.authorize(
-          {
-            client_id: google.script.host.editor ? '' : '',
-            scope: ['https://www.googleapis.com/auth/drive.file'],
-            immediate: false
-          },
-          handleAuthResult
-        );
+        gapi.load('picker', onPickerApiLoad);
       }
 
       function onPickerApiLoad() {
         pickerApiLoaded = true;
-        maybeEnablePicker();
+        updateStatus('Obteniendo autorización...');
+        google.script.run
+          .withSuccessHandler(token => {
+            oauthToken = token;
+            const button = document.getElementById('pickerButton');
+            button.disabled = false;
+            button.textContent = 'Abrir selector de archivos';
+            updateStatus('Listo. Haz clic para seleccionar archivos.');
+          })
+          .withFailureHandler(err => {
+            updateStatus('Error de autorización: ' + err.message);
+          })
+          .JC_getOAuthToken();
       }
 
-      function handleAuthResult(authResult) {
-        if (authResult && !authResult.error) {
-          oauthToken = authResult.access_token;
-          maybeEnablePicker();
-        } else {
-          updateStatus('Error al autenticar con Google Drive.');
-        }
-      }
-
-      function maybeEnablePicker() {
+      document.getElementById('pickerButton').addEventListener('click', () => {
         if (pickerApiLoaded && oauthToken) {
-          const button = document.getElementById('picker');
-          button.disabled = false;
-          button.addEventListener('click', createPicker);
-          updateStatus('Listo. Da clic en “Abrir selector”.');
+          createPicker();
+        } else {
+          updateStatus('La API de Google Picker no está lista o falta autorización.');
         }
-      }
+      });
 
       function createPicker() {
+        const view = new google.picker.DocsView()
+          .setMimeTypes('application/xml,text/xml')
+          .setIncludeFolders(true)
+          .setSelectFolderEnabled(false);
+
+        const uploadView = new google.picker.DocsUploadView();
+
         const picker = new google.picker.PickerBuilder()
-          .setAppId(pickerAppId)
+          .addView(view)
+          .addView(uploadView)
           .setOAuthToken(oauthToken)
-          .setDeveloperKey(developerKey)
-          .addView(new google.picker.DocsView().setMimeTypes('application/xml,text/xml'))
-          .addView(new google.picker.DocsUploadView())
+          .setDeveloperKey('') // Developer Key is not needed for this auth flow
           .setCallback(pickerCallback)
           .setOrigin(google.script.host.origin)
-          .enableFeature(google.picker.Feature.NAV_HIDDEN)
-          .setSize(880, 520)
           .build();
         picker.setVisible(true);
       }
 
       function pickerCallback(data) {
-        if (data.action === google.picker.Action.PICKED || data.action === google.picker.Action.CANCEL) {
-          const spinner = document.getElementById('spinner');
-          spinner.classList.add('hidden');
-        }
-        if (data.action !== google.picker.Action.PICKED) {
+        if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
+          const fileIds = data[google.picker.Response.DOCUMENTS].map(doc => doc.id);
+          if (fileIds.length > 0) {
+            updateStatus(`Enviando ${fileIds.length} archivo(s) para procesar...`);
+            showSpinner(true);
+            google.script.run
+              .withSuccessHandler(() => {
+                showSpinner(false);
+                updateStatus('Proceso completado. Puedes cerrar esta ventana.');
+                google.script.host.close();
+              })
+              .withFailureHandler(err => {
+                showSpinner(false);
+                updateStatus('Error al procesar archivos: ' + err.message);
+              })
+              .JC_handlePickedFiles_(fileIds);
+          } else {
+            updateStatus('No se seleccionaron archivos.');
+          }
+        } else if (data[google.picker.Response.ACTION] === google.picker.Action.CANCEL) {
           updateStatus('Selección cancelada.');
-          return;
         }
-        const fileIds = (data.docs || []).map((doc) => doc.id).filter(Boolean);
-        if (!fileIds.length) {
-          updateStatus('No se seleccionaron archivos.');
-          return;
-        }
-        updateStatus('Enviando ' + fileIds.length + ' archivo(s) para procesar…');
-        document.getElementById('spinner').classList.remove('hidden');
-        google.script.run
-          .withSuccessHandler(function () {
-            updateStatus('Archivos enviados. Puedes cerrar esta ventana.');
-            document.getElementById('spinner').classList.add('hidden');
-          })
-          .withFailureHandler(function (err) {
-            updateStatus('Error: ' + err.message);
-            document.getElementById('spinner').classList.add('hidden');
-          })
-          .JC_handlePickedFiles_(fileIds);
       }
 
       function updateStatus(message) {
         document.getElementById('status').textContent = message;
+      }
+
+      function showSpinner(visible) {
+        document.getElementById('spinner').classList.toggle('hidden', !visible);
       }
     </script>
   </body>

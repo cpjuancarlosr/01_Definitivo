@@ -10,7 +10,7 @@ Este repositorio contiene el código Apps Script para una plantilla contable sim
 ## Características Principales
 
 -   **Estructura Simplificada:** Opera sobre 5 hojas principales: `Setup`, `CFDI`, `Pólizas`, `Bancos` y `Reporte`.
--   **Carga Rápida de CFDI:** Permite subir archivos XML desde el equipo, los cuales son parseados y registrados en la hoja `CFDI`.
+-   **Carga Rápida de CFDI:** Permite subir archivos XML desde el equipo usando un Google Picker optimizado para carga rápida. Los archivos son parseados y registrados en la hoja `CFDI`.
 -   **Flujo de Pólizas Integrado:** Genera asientos contables en estado "Borrador" directamente en la hoja `Pólizas`, listos para ser emitidos.
 -   **Enfoque en lo Esencial:** El parseo de XML extrae los datos clave del encabezado y los totales de impuestos, sin desglosar cada concepto para mantener la agilidad.
 -   **Menú Intuitivo:** Ofrece un menú simple en Google Sheets para las acciones más comunes:
