@@ -111,13 +111,11 @@ var JC = (function () {
     return cachedSs;
   }
 
-  function getSheet(name) {
-    var sheet = getSpreadsheet().getSheetByName(name);
-    if (!sheet) {
-      throw new Error('No se encontró la hoja "' + name + '".');
+
     }
     return sheet;
   }
+
 
   function getSetup() {
     var sh = getSheet(SHEET_NAMES.SETUP);
@@ -159,6 +157,7 @@ var JC = (function () {
     var startRow = sheet.getLastRow() + 1;
     sheet.getRange(startRow, 1, values.length, header.length).setValues(values);
   }
+
 
   function getHeader(sheetName) {
     if (!cachedHeaders[sheetName]) {
@@ -621,6 +620,7 @@ var JC = (function () {
 
   return {
     SHEET_NAMES: SHEET_NAMES,
+
     getSpreadsheet: getSpreadsheet,
     getSetup: getSetup,
     parseFiles: parseFiles,
@@ -629,6 +629,7 @@ var JC = (function () {
 })();
 
 function onOpen() {
+
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('Jefatura Contable')
     .addItem('Cargar XML desde equipo…', 'JC_showPicker')

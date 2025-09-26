@@ -21,8 +21,6 @@ en las hojas.
 
 ## Requisitos previos
 
-1. Crear las hojas de cálculo con encabezados idénticos a los definidos en la
-   especificación (CFDI, Conceptos, Pagos, Bitácora, etc.).
 2. Definir las carpetas de Drive en la hoja **Setup** (celdas B13–B19) y otorgar
    permisos a la cuenta del script.
 3. Activar la API de Google Picker y, si se desea, completar `developerKey` y
