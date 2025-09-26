@@ -21,9 +21,6 @@ en las hojas.
 
 ## Requisitos previos
 
-1. Abrir la hoja una vez con los scripts para que se creen automáticamente las
-   pestañas faltantes (CFDI, Conceptos, Pagos, Bitácora, etc.) con sus
-   encabezados base.
 2. Definir las carpetas de Drive en la hoja **Setup** (celdas B13–B19) y otorgar
    permisos a la cuenta del script.
 3. Activar la API de Google Picker y, si se desea, completar `developerKey` y

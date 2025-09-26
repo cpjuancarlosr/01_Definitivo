@@ -111,31 +111,11 @@ var JC = (function () {
     return cachedSs;
   }
 
-  function ensureSheet(name) {
-    var ss = getSpreadsheet();
-    var sheet = ss.getSheetByName(name);
-    if (!sheet) {
-      try {
-        sheet = ss.insertSheet(name);
-      } catch (error) {
-        throw new Error('No se pudo crear la hoja "' + name + '": ' + error);
-      }
 
-      var defaultHeader = HEADERS[name];
-      if (defaultHeader && defaultHeader.length) {
-        var headerRange = sheet.getRange(1, 1, 1, defaultHeader.length);
-        headerRange.setValues([defaultHeader]);
-        headerRange.setFontWeight('bold');
-        sheet.setFrozenRows(1);
-        cachedHeaders[name] = defaultHeader.slice();
-      }
     }
     return sheet;
   }
 
-  function getSheet(name) {
-    return ensureSheet(name);
-  }
 
   function getSetup() {
     var sh = getSheet(SHEET_NAMES.SETUP);
@@ -178,11 +158,6 @@ var JC = (function () {
     sheet.getRange(startRow, 1, values.length, header.length).setValues(values);
   }
 
-  function ensureRequiredSheets() {
-    Object.keys(SHEET_NAMES).forEach(function (key) {
-      ensureSheet(SHEET_NAMES[key]);
-    });
-  }
 
   function getHeader(sheetName) {
     if (!cachedHeaders[sheetName]) {
@@ -645,7 +620,7 @@ var JC = (function () {
 
   return {
     SHEET_NAMES: SHEET_NAMES,
-    ensureRequiredSheets: ensureRequiredSheets,
+
     getSpreadsheet: getSpreadsheet,
     getSetup: getSetup,
     parseFiles: parseFiles,
@@ -654,7 +629,7 @@ var JC = (function () {
 })();
 
 function onOpen() {
-  JC.ensureRequiredSheets();
+
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('Jefatura Contable')
     .addItem('Cargar XML desde equipo…', 'JC_showPicker')
