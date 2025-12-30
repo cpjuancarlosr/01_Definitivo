@@ -8,7 +8,7 @@
 
 function buildAllSheets(ss) {
   buildHomeDashboard(ss);
-  buildTocSheet(ss);
+  buildTocSheet(ss); // <-- This is the function being fixed
   buildPasswordsSheet(ss);
   buildClientsSheet(ss);
   buildMonthlyObligationsSheet(ss);
@@ -16,7 +16,7 @@ function buildAllSheets(ss) {
   buildNotesSheet(ss);
   buildLinksSheet(ss);
   buildPersonalFinanceSheet(ss);
-  buildIsrAnnualSheet(ss); // <-- This is the function being fixed
+  buildIsrAnnualSheet(ss);
   buildIvaAnnualSheet(ss);
   buildExecutiveSummarySheet(ss);
   buildConfigSheet(ss);
@@ -38,6 +38,20 @@ function buildTocSheet(ss) {
     sheet.setColumnWidths(2, 1, 300);
     sheet.setColumnWidths(3, 1, 400);
 
+    const SHEET_DESCRIPTIONS = {
+      [SHEET_NAMES.CLIENTS]: 'Base de datos central de clientes.',
+      [SHEET_NAMES.MONTHLY_OBLIGATIONS]: 'Control de impuestos y obligaciones mensuales.',
+      [SHEET_NAMES.CALENDAR]: 'Calendario de vencimientos y tareas clave.',
+      [SHEET_NAMES.NOTES]: 'Bitácora de notas y decisiones estratégicas.',
+      [SHEET_NAMES.LINKS]: 'Acceso rápido a portales y herramientas.',
+      [SHEET_NAMES.ISR_ANNUAL]: 'Cálculo y planeación de ISR anual.',
+      [SHEET_NAMES.IVA_ANNUAL]: 'Flujo y control de IVA anual.',
+      [SHEET_NAMES.EXECUTIVE_SUMMARY]: 'Dashboard de KPIs fiscales.',
+      [SHEET_NAMES.PERSONAL_FINANCE]: 'Control de finanzas personales.',
+      [SHEET_NAMES.PASSWORDS]: 'Gestor de credenciales internas.',
+      [SHEET_NAMES.CONFIG]: 'Configuración de parámetros del sistema.'
+    };
+
     const sections = [
         { title: 'OPERACIÓN', items: [SHEET_NAMES.CLIENTS, SHEET_NAMES.MONTHLY_OBLIGATIONS, SHEET_NAMES.CALENDAR] },
         { title: 'ESTRATEGIA', items: [SHEET_NAMES.NOTES, SHEET_NAMES.LINKS] },
@@ -51,12 +65,16 @@ function buildTocSheet(ss) {
 
     sections.forEach(section => {
         const range = sheet.getRange(row, 2, 1, 2);
-        applySubHeaderStyle(range.merge().setValues([[section.title]]));
+        range.merge(); // Merge the cells first
+        range.setValue(section.title); // Set the value on the merged range
+        applySubHeaderStyle(range); // Apply the style
         row++;
+
         section.items.forEach(item => {
             const gid = ss.getSheetByName(item).getSheetId();
             const formula = `=HYPERLINK("#gid=${gid}"; "${item}")`;
             sheet.getRange(row, 2).setFormula(formula).setFontWeight('bold');
+            sheet.getRange(row, 3).setValue(SHEET_DESCRIPTIONS[item]); // Add the description
             row++;
         });
     });
@@ -64,7 +82,7 @@ function buildTocSheet(ss) {
 
 function buildPasswordsSheet(ss) {
   const sheet = ss.getSheetByName(SHEET_NAMES.PASSWORDS);
-  const headers = ['CLIENTE', 'SERVICIO / PLATAFORMA', 'USUARIO', 'CONTRASEÑA', 'NOTA'];
+  const headers = ['CLIENTE', 'SERVICIO / PLATAForma', 'USUARIO', 'CONTRASEÑA', 'NOTA'];
   sheet.getRange('B2').setValue('Control de Contraseñas Interno');
   applyHeaderStyle(sheet.getRange('B3:F3').setValues([headers]));
   sheet.setColumnWidths(2, 5, 180);
@@ -165,23 +183,20 @@ function buildIsrAnnualSheet(ss) {
   const meses = [['Enero'], ['Febrero'], ['Marzo'], ['Abril'], ['Mayo'], ['Junio'], ['Julio'], ['Agosto'], ['Septiembre'], ['Octubre'], ['Noviembre'], ['Diciembre']];
   sheet.getRange('B5:B16').setValues(meses);
 
-  // Fórmulas CORREGIDAS
-  sheet.getRange('C5').setFormula('=SUM(C5)'); // Acumulado de Enero es el mismo
-  sheet.getRange('C6:C16').setFormula('=C5+SUM(C$6:C6)');
-  sheet.getRange('D5:D16').setFormula(`=VLOOKUP("Coeficiente de Utilidad PM", '${SHEET_NAMES.CONFIG}'!B4:C6, 2, FALSE)`);
-  sheet.getRange('E5:E16').setFormula('=C5*D5');
-  sheet.getRange('F5:F16').setFormula(`=E5*VLOOKUP("Tasa ISR PM", '${SHEET_NAMES.CONFIG}'!B4:C6, 2, FALSE)`);
-  sheet.getRange('H5').setValue(0); // Enero no tiene pago anterior
+  sheet.getRange('D5:D16').setFormula(`='${SHEET_NAMES.CONFIG}'!C6`);
+  sheet.getRange('C5').setFormula('=IF(ISBLANK(B5),"",SUM(B5))');
+  sheet.getRange('C6:C16').setFormula('=IF(ISBLANK(B6),"",C5+SUM(B$6:B6))');
+  sheet.getRange('E5:E16').setFormula('=D5*E5');
+  sheet.getRange('F5:F16').setFormula(`=F5*'${SHEET_NAMES.CONFIG}'!C4`);
+  sheet.getRange('H5').setValue(0);
   sheet.getRange('H6:H16').setFormula('=SUM(I$5:I5)');
   sheet.getRange('I5:I16').setFormula('=G5-H5');
 
-  // Estilos
   sheet.setColumnWidths(2, 9, 140);
-  applyInputStyle(sheet.getRange('C5:C16')); // Ingresos del mes es input
-  sheet.getRange('D5:I16').setNumberFormat('"$"#,##0.00'); // Formato de moneda
+  applyInputStyle(sheet.getRange('B5:B16'));
+  sheet.getRange('C5:I16').setNumberFormat('"$"#,##0.00');
   applyResultStyle(sheet.getRange('I5:I16'));
 }
-
 
 function buildIvaAnnualSheet(ss) {
   const sheet = ss.getSheetByName(SHEET_NAMES.IVA_ANNUAL);
@@ -193,12 +208,12 @@ function buildIvaAnnualSheet(ss) {
   const meses = [['Enero'], ['Febrero'], ['Marzo'], ['Abril'], ['Mayo'], ['Junio'], ['Julio'], ['Agosto'], ['Septiembre'], ['Octubre'], ['Noviembre'], ['Diciembre']];
   sheet.getRange('B5:B16').setValues(meses);
 
-  // Fórmula
   sheet.getRange('F5:F16').setFormula('=C5-D5-E5');
 
   sheet.setColumnWidths(2, 6, 160);
   applyInputStyle(sheet.getRange('C5:E16'));
   applyResultStyle(sheet.getRange('F5:F16'));
+  sheet.getRange('C5:F16').setNumberFormat('"$"#,##0.00');
 }
 
 function buildExecutiveSummarySheet(ss) {
@@ -216,7 +231,6 @@ function buildExecutiveSummarySheet(ss) {
 
   sheet.getRange('B4:B7').setValues(kpis).setFontWeight('bold');
 
-  // Fórmulas del Resumen
   sheet.getRange('C4').setFormula(`=MAX('${SHEET_NAMES.ISR_ANNUAL}'!G5:G16)`);
   sheet.getRange('C5').setFormula(`=SUM('${SHEET_NAMES.IVA_ANNUAL}'!F5:F16)`);
   sheet.getRange('C6').setFormula(`=SUM('${SHEET_NAMES.ISR_ANNUAL}'!I5:I16)`);
