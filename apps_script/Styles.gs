@@ -75,7 +75,7 @@ function cleanSheet(sheet) {
     .setHorizontalAlignment('left')
     .setVerticalAlignment('middle')
     .setBorder(false, false, false, false, false, false);
-  sheet.setGridLines(false);
+  sheet.setHiddenGridlines(true); // <-- FIX APPLIED HERE
 }
 
 /**
