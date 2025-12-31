@@ -1,15 +1,16 @@
 /**
  * @fileoverview Archivo principal de ECD GESTIÓN OS.
- * Contiene la función maestra que orquesta la creación y configuración del sistema completo.
+ * Contiene la función maestra y el objeto global de la hoja de cálculo.
  */
+
+// GLOBAL SPREADSHEET OBJECT - accessible by all script files
+const ss = SpreadsheetApp.getActiveSpreadsheet();
 
 /**
  * Función maestra para crear o regenerar el sistema ECD GESTIÓN OS completo.
  * Borra las hojas existentes, crea las nuevas, aplica estilos y configura todo.
- * Es robusto contra el error de "eliminar todas las hojas".
  */
 function runFullSystemBuild() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const allSheetNames = Object.values(SHEET_NAMES);
 
   const ui = SpreadsheetApp.getUi();
@@ -22,10 +23,8 @@ function runFullSystemBuild() {
 
   ss.toast('Iniciando construcción del sistema...', 'ECD GESTIÓN OS', -1);
 
-  // FIX: Crear una hoja temporal para evitar el error de "eliminar todas las hojas"
   const tempSheet = ss.insertSheet('temp_placeholder_' + new Date().getTime());
 
-  // 1. Borrar hojas existentes del sistema
   const existingSheets = ss.getSheets();
   existingSheets.forEach(sheet => {
     if (allSheetNames.includes(sheet.getName())) {
@@ -33,18 +32,15 @@ function runFullSystemBuild() {
     }
   });
 
-  // 2. Crear todas las hojas del sistema en el orden correcto
   allSheetNames.forEach(name => {
     ss.insertSheet(name);
   });
 
-  // Eliminar la hoja "Sheet1" inicial si todavía existe
   const defaultSheet = ss.getSheetByName('Sheet1');
   if (defaultSheet) {
     ss.deleteSheet(defaultSheet);
   }
 
-  // 3. Aplicar limpieza y estilos base a cada hoja
   allSheetNames.forEach(name => {
     const sheet = ss.getSheetByName(name);
     if (sheet) {
@@ -52,10 +48,8 @@ function runFullSystemBuild() {
     }
   });
 
-  // 4. Llamar al constructor principal que maneja todas las hojas
   buildAllSheets();
 
-  // 5. Proteger rangos críticos (fórmulas)
   allSheetNames.forEach(name => {
     const sheet = ss.getSheetByName(name);
     const protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
@@ -75,7 +69,6 @@ function runFullSystemBuild() {
 
   ss.toast('Sistema construido. Aplicando toques finales...', 'ECD GESTIÓN OS', 5);
 
-  // 6. Activar la hoja HOME y eliminar la hoja temporal
   ss.setActiveSheet(ss.getSheetByName(SHEET_NAMES.HOME));
   ss.deleteSheet(tempSheet);
 

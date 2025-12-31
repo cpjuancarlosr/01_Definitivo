@@ -1,9 +1,7 @@
 /**
  * @fileoverview Módulo para construir la estructura de cada hoja en ECD GESTIÓN OS.
- * Utiliza un objeto global `ss` para la estabilidad de la ejecución.
+ * Todas las funciones utilizan el objeto global `ss` definido en Code.gs.
  */
-
-const ss = SpreadsheetApp.getActiveSpreadsheet();
 
 // --- BUILDERS PRINCIPALES ---
 
@@ -224,7 +222,7 @@ function buildExecutiveSummarySheet() {
   sheet.setColumnWidth(3, 150);
 
   const kpis = [
-    ['ISR TOTAL ANUAL CAUSADO'],
+    ['ISR TOTAL ANual CAUSADO'],
     ['IVA NETO ANUAL (A CARGO / FAVOR)'],
     ['PAGOS PROVISIONALES TOTALES'],
     ['CARGA FISCAL TOTAL']
