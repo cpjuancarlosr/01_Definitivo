@@ -1,38 +1,39 @@
 /**
  * @fileoverview Módulo para construir la estructura de cada hoja en ECD GESTIÓN OS.
- * Cada función es responsable de configurar una hoja específica, aplicando la estética,
- * la estructura y las fórmulas de software requeridas.
+ * Utiliza un objeto global `ss` para la estabilidad de la ejecución.
  */
+
+const ss = SpreadsheetApp.getActiveSpreadsheet();
 
 // --- BUILDERS PRINCIPALES ---
 
-function buildAllSheets(ss) {
-  buildHomeDashboard(ss);
-  buildTocSheet(ss); // <-- This is the function being fixed
-  buildPasswordsSheet(ss);
-  buildClientsSheet(ss);
-  buildMonthlyObligationsSheet(ss);
-  buildCalendarSheet(ss);
-  buildNotesSheet(ss);
-  buildLinksSheet(ss);
-  buildPersonalFinanceSheet(ss);
-  buildIsrAnnualSheet(ss);
-  buildIvaAnnualSheet(ss);
-  buildExecutiveSummarySheet(ss);
-  buildConfigSheet(ss);
+function buildAllSheets() {
+  buildHomeDashboard();
+  buildTocSheet();
+  buildPasswordsSheet();
+  buildClientsSheet();
+  buildMonthlyObligationsSheet();
+  buildCalendarSheet();
+  buildNotesSheet();
+  buildLinksSheet();
+  buildPersonalFinanceSheet();
+  buildIsrAnnualSheet();
+  buildIvaAnnualSheet();
+  buildExecutiveSummarySheet();
+  buildConfigSheet();
 }
 
 
 // --- BUILDERS INDIVIDUALES ---
 
-function buildHomeDashboard(ss) {
+function buildHomeDashboard() {
   const sheet = ss.getSheetByName(SHEET_NAMES.HOME);
   sheet.getRange('B2').setValue('ECD GESTIÓN OS').setFontSize(24).setFontWeight('bold');
   sheet.getRange('B3').setValue('Bienvenido al sistema operativo de tu negocio.').setFontSize(12);
   sheet.setColumnWidth(1, 20);
 }
 
-function buildTocSheet(ss) {
+function buildTocSheet() {
     const sheet = ss.getSheetByName(SHEET_NAMES.TOC);
     sheet.setColumnWidths(1, 1, 20);
     sheet.setColumnWidths(2, 1, 300);
@@ -65,22 +66,22 @@ function buildTocSheet(ss) {
 
     sections.forEach(section => {
         const range = sheet.getRange(row, 2, 1, 2);
-        range.merge(); // Merge the cells first
-        range.setValue(section.title); // Set the value on the merged range
-        applySubHeaderStyle(range); // Apply the style
+        range.merge();
+        range.setValue(section.title);
+        applySubHeaderStyle(range);
         row++;
 
         section.items.forEach(item => {
             const gid = ss.getSheetByName(item).getSheetId();
             const formula = `=HYPERLINK("#gid=${gid}"; "${item}")`;
             sheet.getRange(row, 2).setFormula(formula).setFontWeight('bold');
-            sheet.getRange(row, 3).setValue(SHEET_DESCRIPTIONS[item]); // Add the description
+            sheet.getRange(row, 3).setValue(SHEET_DESCRIPTIONS[item]);
             row++;
         });
     });
 }
 
-function buildPasswordsSheet(ss) {
+function buildPasswordsSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.PASSWORDS);
   const headers = ['CLIENTE', 'SERVICIO / PLATAForma', 'USUARIO', 'CONTRASEÑA', 'NOTA'];
   sheet.getRange('B2').setValue('Control de Contraseñas Interno');
@@ -89,7 +90,7 @@ function buildPasswordsSheet(ss) {
   applyInputStyle(sheet.getRange('B4:F100'));
 }
 
-function buildClientsSheet(ss) {
+function buildClientsSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.CLIENTS);
   const headers = ['ID CLIENTE', 'NOMBRE COMERCIAL', 'RAZÓN SOCIAL', 'RFC', 'RÉGIMEN FISCAL', 'ESTATUS FISCAL', 'OBSERVACIONES'];
   sheet.getRange('B2').setValue('Base Maestra de Clientes');
@@ -100,7 +101,7 @@ function buildClientsSheet(ss) {
   applyInputStyle(sheet.getRange('B4:H100'));
 }
 
-function buildMonthlyObligationsSheet(ss) {
+function buildMonthlyObligationsSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.MONTHLY_OBLIGATIONS);
   sheet.getRange('B2').setValue('Control de Obligaciones Mensuales');
   const headers = ['CLIENTE', 'PERIODO', 'ISR', 'IVA', 'DIOT', 'IMSS', 'ISN', 'ESTATUS GENERAL'];
@@ -110,7 +111,7 @@ function buildMonthlyObligationsSheet(ss) {
   applyInputStyle(sheet.getRange('B4:I100'));
 }
 
-function buildCalendarSheet(ss) {
+function buildCalendarSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.CALENDAR);
   sheet.getRange('B2').setValue('Calendario Fiscal y Tareas');
   const headers = ['FECHA VENCIMIENTO', 'CLIENTE', 'TAREA / OBLIGACIÓN', 'ESTATUS', 'RESPONSABLE'];
@@ -120,7 +121,7 @@ function buildCalendarSheet(ss) {
   applyInputStyle(sheet.getRange('B4:F100'));
 }
 
-function buildNotesSheet(ss) {
+function buildNotesSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.NOTES);
   sheet.getRange('B2').setValue('Bitácora de Notas Estratégicas');
   const headers = ['FECHA', 'CLIENTE / TEMA', 'NOTA ESTRATÉGICA'];
@@ -130,7 +131,7 @@ function buildNotesSheet(ss) {
   applyInputStyle(sheet.getRange('B4:D100'));
 }
 
-function buildLinksSheet(ss) {
+function buildLinksSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.LINKS);
   sheet.getRange('B2').setValue('Links a Portales Recurrentes');
   const headers = ['CATEGORÍA', 'NOMBRE DEL SITIO', 'URL'];
@@ -141,7 +142,7 @@ function buildLinksSheet(ss) {
   applyInputStyle(sheet.getRange('B4:D100'));
 }
 
-function buildPersonalFinanceSheet(ss) {
+function buildPersonalFinanceSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.PERSONAL_FINANCE);
   sheet.getRange('B2').setValue('Control de Finanzas Personales');
   const headers = ['FECHA', 'CATEGORÍA', 'DESCRIPCIÓN', 'INGRESO', 'EGRESO', 'SALDO'];
@@ -153,7 +154,7 @@ function buildPersonalFinanceSheet(ss) {
   applyInputStyle(sheet.getRange('B4:F100'));
 }
 
-function buildConfigSheet(ss) {
+function buildConfigSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.CONFIG);
   sheet.getRange('B2').setValue('Configuración del Sistema');
   const headers = [['PARÁMETRO', 'VALOR']];
@@ -173,7 +174,7 @@ function buildConfigSheet(ss) {
   sheet.setColumnWidths(2, 2, 250);
 }
 
-function buildIsrAnnualSheet(ss) {
+function buildIsrAnnualSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.ISR_ANNUAL);
   sheet.getRange('B2').setValue('Cálculo Anual de ISR (Persona Moral)');
 
@@ -198,7 +199,7 @@ function buildIsrAnnualSheet(ss) {
   applyResultStyle(sheet.getRange('I5:I16'));
 }
 
-function buildIvaAnnualSheet(ss) {
+function buildIvaAnnualSheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.IVA_ANNUAL);
   sheet.getRange('B2').setValue('Control Anual de IVA (Persona Moral)');
 
@@ -216,7 +217,7 @@ function buildIvaAnnualSheet(ss) {
   sheet.getRange('C5:F16').setNumberFormat('"$"#,##0.00');
 }
 
-function buildExecutiveSummarySheet(ss) {
+function buildExecutiveSummarySheet() {
   const sheet = ss.getSheetByName(SHEET_NAMES.EXECUTIVE_SUMMARY);
   sheet.getRange('B2').setValue('Resumen Ejecutivo Fiscal Anual');
   sheet.setColumnWidth(2, 250);

@@ -53,7 +53,7 @@ function runFullSystemBuild() {
   });
 
   // 4. Llamar al constructor principal que maneja todas las hojas
-  buildAllSheets(ss);
+  buildAllSheets();
 
   // 5. Proteger rangos críticos (fórmulas)
   allSheetNames.forEach(name => {
