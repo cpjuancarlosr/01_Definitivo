@@ -1,16 +1,14 @@
 /**
  * @fileoverview Archivo principal de ECD GESTIÓN OS.
- * Contiene la función maestra y el objeto global de la hoja de cálculo.
+ * Contiene la función maestra que orquesta la creación y configuración del sistema completo.
  */
-
-// GLOBAL SPREADSHEET OBJECT - accessible by all script files
-const ss = SpreadsheetApp.getActiveSpreadsheet();
 
 /**
  * Función maestra para crear o regenerar el sistema ECD GESTIÓN OS completo.
- * Borra las hojas existentes, crea las nuevas, aplica estilos y configura todo.
+ * Define el objeto `ss` y lo pasa como parámetro para garantizar la estabilidad.
  */
 function runFullSystemBuild() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet(); // Define ss once, here.
   const allSheetNames = Object.values(SHEET_NAMES);
 
   const ui = SpreadsheetApp.getUi();
@@ -36,6 +34,8 @@ function runFullSystemBuild() {
     ss.insertSheet(name);
   });
 
+  SpreadsheetApp.flush(); // Force the application to apply all pending changes
+
   const defaultSheet = ss.getSheetByName('Sheet1');
   if (defaultSheet) {
     ss.deleteSheet(defaultSheet);
@@ -44,14 +44,15 @@ function runFullSystemBuild() {
   allSheetNames.forEach(name => {
     const sheet = ss.getSheetByName(name);
     if (sheet) {
-      cleanSheet(sheet);
+      cleanSheet(sheet); // This function will now work correctly
     }
   });
 
-  buildAllSheets();
+  buildAllSheets(ss); // Pass the stable `ss` object as a parameter
 
   allSheetNames.forEach(name => {
     const sheet = ss.getSheetByName(name);
+    if (!sheet) return;
     const protections = sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE);
     protections.forEach(p => p.remove());
 
